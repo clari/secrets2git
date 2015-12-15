@@ -1,79 +1,55 @@
 # -*- coding: utf-8 -*-
 
-import subprocess
 import boto3
 import os
 from cryptography.fernet import Fernet
+import imp
 
-################################ CONFIG ########################################
+CONF_FILE_NAME = 'Secrets2GitConf.py'
+PARENT_DIR = os.path.dirname(os.path.dirname(os.path.realpath(__file__))) + '/'
+conf = imp.load_source('conf', PARENT_DIR + CONF_FILE_NAME)
 
-# List the files you want to encrypt. These should also be in .gitignore.
-FILES_TO_ENCRYPT = ['secrets.py']
+client = boto3.client('kms', region_name=conf.REGION_NAME,
+                      aws_access_key_id=conf.AWS_ACCESS_KEY_ID,
+                      aws_secret_access_key=conf.AWS_SECRET_ACCESS_KEY)
 
-FERNET_KEY_NAME = 'SECRETS2GIT_ENCRYPTED_FERNET_KEY_disabled'
-KMS_KEY_ID_NAME = 'SECRETS2GIT_KMS_KEY_ID'
-
-# Create an AWS KMS key and set it in your environment, i.e.;
-# echo export SECRETS2GIT_KMS_KEY_ID=<YOUR-KMS-ARN> >> ~/.bash_profile
-KMS_KEY_ID = os.environ.get(KMS_KEY_ID_NAME, None)
-
-# Create a fernet key and set it in your environment, i.e.;
-# Run this file without a key set
-# echo export SECRETS2GIT_ENCRYPTED_FERNET_KEY=<YOUR-FERNET-KEY> >> ~/.bash_profile
-FERNET_KEY = os.environ.get(FERNET_KEY_NAME, None)
-
-# The KMS and Fernet keys can be part of your dev environment setup.
-# So you should be able to create them once and reuse them for all projects
-# within your team. They do not grant access to anything without AWS
-# credentials.
-
-# AWS region for KMS key
-REGION_NAME = 'us-east-1'
-
-# Make sure your AWS IAM credentials are set.
-AWS_ACCESS_KEY_ID     = os.environ['AWS_ACCESS_KEY_ID']
-AWS_SECRET_ACCESS_KEY = os.environ['AWS_SECRET_ACCESS_KEY']
-
-############################## END CONFIG ######################################
-
-if FERNET_KEY is None:
-    print(FERNET_KEY_NAME + ' is not set in your environment.')
+if 'KEY' not in dir(conf):
+    print('Secrets2Git key not found in ' + CONF_FILE_NAME)
     print('Do you want to create a new one?')
     answer = raw_input()
     if 'y' in answer:
-        FERNET_KEY = Fernet.generate_key()
-        set_key = '%s=%s' % (FERNET_KEY_NAME, FERNET_KEY)
-        print('Add the following to your environment and rerun:')
-        print('\t%s ' % set_key)
-        print('i.e.')
-        print('echo export %s >> ~/.bash_profile' % set_key)
+        key = Fernet.generate_key()
+        response = client.encrypt(
+            KeyId=conf.KMS_KEY_ID,
+            Plaintext=key)
+        encoded = response['CiphertextBlob'].encode('base64')
+        print('')
+        print('Add the following to ' + CONF_FILE_NAME + ' -----------')
+        print('')
+        print('KEY = """' + encoded + '"""')
+        print('')
     else:
-        print('fail')
+        print('Please get the encrypted key from a fellow developer')
     exit(1)
-elif KMS_KEY_ID_NAME is None:
-    print(KMS_KEY_ID_NAME + ' is not set in your environment. '
-        'You need to create an AWS KMS key for ultra-secure encryption.')
+elif conf.KMS_KEY_ID is None:
+    print('KMS key id not set in ' + CONF_FILE_NAME)
     exit(1)
 
-client = boto3.client('kms', region_name=REGION_NAME,
-                      aws_access_key_id=AWS_ACCESS_KEY_ID,
-                      aws_secret_access_key=AWS_SECRET_ACCESS_KEY)
+fernet_key = client.decrypt(
+    CiphertextBlob=conf.KEY.decode('base64'))['Plaintext']
 
-response = client.encrypt(
-    KeyId=KMS_KEY_ID,
-    Plaintext=FERNET_KEY)
+fernet = Fernet(fernet_key.encode('ascii'))
 
-for filename in FILES_TO_ENCRYPT:
-    # TODO: Encrypt with fernet
+for filename in conf.FILES_TO_ENCRYPT:
+    with open(PARENT_DIR + filename, 'rb') as in_file:
+        contents = in_file.read()
+        encrypted = fernet.encrypt(contents).encode('base64')
+        with open(PARENT_DIR + filename + '.encrypted', 'w') as out_file:
+            out_file.write(encrypted)
     pass
 
 
-# TODO: Get encryption key from KMS
 # TODO: '' decrypts this file and stores it here on git pull - in dev and cloud
 # TODO: '' encrypts this file and checks it in on git push
-# TODO: Store encrypted_databag_secret in KMS.
-# this file from mc ~/.dev-secrets/clarius_core/branch where branch defaults to master
 
-# arn:aws:kms:us-east-1:374926383693:key/2382c5e6-c4b6-44da-bbc3-eb4e00e0578d
-# arn:aws:kms:us-east-1:374926383693:key/2382c5e6-c4b6-44da-bbc3-eb4e00e0578d
-# arn:aws:kms:us-east-1:123456789012:key/12345678-1234-1234-1234-123456789012
+# this file from mc ~/.dev-secrets/clarius_core/branch where branch defaults to master
