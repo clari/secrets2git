@@ -1,12 +1,12 @@
 # -*- coding: utf-8 -*-
 
+print('secrets2git: starting')
+
 import boto3
 import os
 from cryptography.fernet import Fernet
 import imp
 import sys
-
-print('secrets2git: checking')
 
 CONF_FILE_NAME = 'Secrets2GitConf.py'
 PARENT_DIR = os.path.dirname(os.path.dirname(os.path.realpath(__file__))) + '/'
@@ -56,6 +56,9 @@ def decrypt(filename):
 
 if sys.argv[1] == 'encrypt':
     for filename in conf.FILES_TO_ENCRYPT:
+        if not os.path.isfile(filename):
+            print('secrets2git: ' + filename + ' does not exist, skipping')
+            continue
         with open(PARENT_DIR + filename, 'rb') as in_file:
             contents = in_file.read()
             if contents != decrypt(filename):
