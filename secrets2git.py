@@ -6,6 +6,8 @@ from cryptography.fernet import Fernet
 import imp
 import sys
 
+print('secrets2git: checking')
+
 CONF_FILE_NAME = 'Secrets2GitConf.py'
 PARENT_DIR = os.path.dirname(os.path.dirname(os.path.realpath(__file__))) + '/'
 conf = imp.load_source('conf', PARENT_DIR + CONF_FILE_NAME)
@@ -45,24 +47,33 @@ if len(sys.argv) < 2:
     print('pass decrypt or encrypt as first argument')
     exit(1)
 
+
+def decrypt(filename):
+    with open(PARENT_DIR + filename + EXTENSION, 'r') as in_file:
+        contents = ''.join(in_file.readlines()[1:])  # Skip header
+        decrypted = fernet.decrypt(contents.decode('base64'))
+    return decrypted
+
 if sys.argv[1] == 'encrypt':
     for filename in conf.FILES_TO_ENCRYPT:
         with open(PARENT_DIR + filename, 'rb') as in_file:
             contents = in_file.read()
-            header = 'Encrypted with secrets2git'.ljust(76, '-') + '\n'
-            encrypted = header + fernet.encrypt(contents).encode('base64')
-            with open(PARENT_DIR + filename + EXTENSION, 'w') as out_file:
-                out_file.write(encrypted)
+            if contents != decrypt(filename):
+                header = 'Encrypted with secrets2git'.ljust(76, '-') + '\n'
+                encrypted = header + fernet.encrypt(contents).encode('base64')
+                print('secrets2git:' + filename + ' changed, encrypting...')
+                with open(PARENT_DIR + filename + EXTENSION, 'w') as out_file:
+                    out_file.write(encrypted)
 elif sys.argv[1] == 'decrypt':
     for filename in conf.FILES_TO_ENCRYPT:
-        with open(PARENT_DIR + filename + EXTENSION, 'r') as in_file:
-            contents = ''.join(in_file.readlines()[1:])  # Skip header
-            decrypted = fernet.decrypt(contents.decode('base64'))
-            with open(PARENT_DIR + filename, 'w') as out_file:
-                out_file.write(decrypted)
+        print('secrets2git: decrypting ' + filename)
+        decrypted = decrypt(filename)
+        with open(PARENT_DIR + filename, 'w') as out_file:
+            out_file.write(decrypted)
 else:
     print('invalid first argument, must be decrypt or encrypt')
 
+print('secrets2git: finished')
 # TODO: Git submodule update --init
 # TODO: Tries to install secrets2git dependencies
 # TODO: '' decrypts this file and stores it here on git pull - in dev and cloud
