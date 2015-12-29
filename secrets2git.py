@@ -18,17 +18,20 @@ EXTENSION = '.encrypted'
 def say(message):
     print('secrets2git: ' + message)
 
-if not conf.AWS_ACCESS_KEY_ID:
-    say('AWS_ACCESS_KEY_ID must be set in your environment')
-    exit(1)
+try:
+    client = boto3.client('kms', region_name=conf.REGION_NAME)
+except:
+    if not conf.AWS_ACCESS_KEY_ID:
+        say('AWS_ACCESS_KEY_ID must be set in your environment')
+        exit(1)
 
-if not conf.AWS_SECRET_ACCESS_KEY:
-    say('AWS_SECRET_ACCESS_KEY must be set in your environment')
-    exit(1)
+    if not conf.AWS_SECRET_ACCESS_KEY:
+        say('AWS_SECRET_ACCESS_KEY must be set in your environment')
+        exit(1)
 
-client = boto3.client('kms', region_name=conf.REGION_NAME,
-                      aws_access_key_id=conf.AWS_ACCESS_KEY_ID,
-                      aws_secret_access_key=conf.AWS_SECRET_ACCESS_KEY)
+    client = boto3.client('kms', region_name=conf.REGION_NAME,
+                          aws_access_key_id=conf.AWS_ACCESS_KEY_ID,
+                          aws_secret_access_key=conf.AWS_SECRET_ACCESS_KEY)
 
 if 'KEY' not in dir(conf):
     say('secrets2git key not found in ' + CONF_FILE_NAME)
