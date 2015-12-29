@@ -8,6 +8,7 @@ from cryptography.fernet import Fernet
 import imp
 import sys
 import subprocess
+import os.path
 
 CONF_FILE_NAME = 'Secrets2GitConf.py'
 PARENT_DIR = os.path.dirname(os.path.dirname(os.path.realpath(__file__))) + '/'
@@ -15,23 +16,28 @@ conf = imp.load_source('conf', PARENT_DIR + CONF_FILE_NAME)
 EXTENSION = '.encrypted'
 
 
+def get_client():
+    if os.path.isfile('~/.aws/credentials'):
+        return boto3.client('kms', region_name=conf.REGION_NAME)
+    else:
+        if not conf.AWS_ACCESS_KEY_ID:
+            return False
+        elif not conf.AWS_SECRET_ACCESS_KEY:
+            return False
+        else:
+            return boto3.client('kms', region_name=conf.REGION_NAME,
+                          aws_access_key_id=conf.AWS_ACCESS_KEY_ID,
+                          aws_secret_access_key=conf.AWS_SECRET_ACCESS_KEY)
+
+
 def say(message):
     print('secrets2git: ' + message)
 
-try:
-    client = boto3.client('kms', region_name=conf.REGION_NAME)
-except:
-    if not conf.AWS_ACCESS_KEY_ID:
-        say('AWS_ACCESS_KEY_ID must be set in your environment')
-        exit(1)
+client = get_client()
 
-    if not conf.AWS_SECRET_ACCESS_KEY:
-        say('AWS_SECRET_ACCESS_KEY must be set in your environment')
-        exit(1)
-
-    client = boto3.client('kms', region_name=conf.REGION_NAME,
-                          aws_access_key_id=conf.AWS_ACCESS_KEY_ID,
-                          aws_secret_access_key=conf.AWS_SECRET_ACCESS_KEY)
+if client == False:
+    say('AWS credentials not found in ~/.aws/credentials or in '
+        'AWS_ACCESS_KEY_ID and AWS_SECRET_ACCESS_KEY environment variables')
 
 if 'KEY' not in dir(conf):
     say('secrets2git key not found in ' + CONF_FILE_NAME)
@@ -94,10 +100,10 @@ if sys.argv[1] == 'encrypt':
             if contents != decrypt(file_name):
                 header = 'Encrypted with secrets2git'.ljust(76, '-') + '\n'
                 encrypted = header + fernet.encrypt(contents).encode('base64')
-                say('Encrypting ' + file_name)
                 with open(PARENT_DIR + file_name + EXTENSION, 'w') as out_file:
                     out_file.write(encrypted)
                 encrypted_file_names.append(file_name + EXTENSION)
+                say('Encrypted ' + file_name)
     if not encrypted_file_names:
         say('No secrets changed')
     if os.environ.get('SECRETS2GIT_COMMIT', None):
@@ -108,10 +114,10 @@ if sys.argv[1] == 'encrypt':
             say('\t' + file_name)
 elif sys.argv[1] == 'decrypt':
     for file_name in conf.FILES_TO_ENCRYPT:
-        say('decrypting ' + file_name)
         decrypted = decrypt(file_name)
         with open(PARENT_DIR + file_name, 'w') as out_file:
             out_file.write(decrypted)
+        say('Decrypted ' + file_name)
 else:
     say('invalid first argument, must be decrypt or encrypt')
 
