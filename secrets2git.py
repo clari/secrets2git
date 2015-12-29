@@ -112,10 +112,3 @@ elif sys.argv[1] == 'decrypt':
 else:
     say('invalid first argument, must be decrypt or encrypt')
 
-# TODO: Git submodule update --init
-# TODO: Tries to install secrets2git dependencies
-# TODO: '' decrypts this file and stores it here on git pull - in dev and cloud
-# TODO: '' encrypts this file and checks it in on git push
-# TODO: Deploy does git submodule update --init like clarius_web
-
-# this file from mc ~/.dev-secrets/clarius_core/branch where branch defaults to master
