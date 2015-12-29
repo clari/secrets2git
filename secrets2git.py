@@ -38,6 +38,7 @@ client = get_client()
 if client == False:
     say('AWS credentials not found in ~/.aws/credentials or in '
         'AWS_ACCESS_KEY_ID and AWS_SECRET_ACCESS_KEY environment variables')
+    exit(1)
 
 if 'KEY' not in dir(conf):
     say('secrets2git key not found in ' + CONF_FILE_NAME)
