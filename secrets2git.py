@@ -9,15 +9,17 @@ import imp
 import sys
 import subprocess
 import os.path
+from os.path import expanduser
 
 CONF_FILE_NAME = 'Secrets2GitConf.py'
 PARENT_DIR = os.path.dirname(os.path.dirname(os.path.realpath(__file__))) + '/'
 conf = imp.load_source('conf', PARENT_DIR + CONF_FILE_NAME)
 EXTENSION = '.encrypted'
+HOME = expanduser("~")
 
 
 def get_client():
-    if os.path.isfile('~/.aws/credentials'):
+    if os.path.isfile(HOME + '/.aws/credentials'):
         return boto3.client('kms', region_name=conf.REGION_NAME)
     else:
         if not conf.AWS_ACCESS_KEY_ID:
