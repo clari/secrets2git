@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-print('secrets2git: starting')
+print('secrets2git: Starting')
 
 import boto3
 import os
