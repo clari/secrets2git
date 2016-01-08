@@ -51,7 +51,7 @@ def encrypt_files(fernet):
     if os.environ.get('SECRETS2GIT_COMMIT', None):
         commit_encrypted_files(encrypted_file_names)
     elif encrypted_file_names:
-        say('Please commit:')
+        say('Please add and commit:')
         for file_name in encrypted_file_names:
             say('\t' + file_name)
 
