@@ -14,7 +14,7 @@ import os
 # FILES_TO_ENCRYPT = []
 
 # Create an AWS KMS key and put its ARN here:
-KMS_KEY_ID = 'arn:aws:kms:us-east-1:012345678910:key/deadbeef-dead-beef-beef-deadbeafdead'
+# KMS_KEY_ID = 'arn:aws:kms:us-east-1:012345678910:key/deadbeef-dead-beef-beef-deadbeafdead'
 
 # Optional AWS region if nothing set in ~/.aws/config
 # REGION_NAME = 'us-east-1'
