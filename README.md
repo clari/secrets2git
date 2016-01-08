@@ -29,7 +29,7 @@ Setup
    echo python secrets2git.py encrypt >> .git/hooks/pre-push
    ```
    
-6. Setup AWS keys
+6. Setup AWS keys if you haven't already
 
    a. Go to [Users](https://console.aws.amazon.com/iam/home#users) in AWS
    
