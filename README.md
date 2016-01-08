@@ -1,4 +1,4 @@
-Managing secrets correctly is a giant pain that nobody gets right.
+Managing secrets correctly is a giant pain to get right.
 secrets2git attempts to fix that by making secure management of secrets easy.
 
 How?
