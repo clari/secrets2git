@@ -27,8 +27,3 @@ Setup
    echo python secrets2git.py encrypt >> .git/hooks/pre-push
 ```
 
-Notes:
-- Okay to require internet connection on git pull/push since git usually
-  needs it anyway.
-- Git submodule as a distribution mechanism, cuz it's Git!
-
