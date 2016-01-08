@@ -12,6 +12,8 @@ cd ..
 # Get secrets2git submodule
 git submodule update --init
 
+cd ${DIR}
+
 # Clarify sudo password prompt
 sudo -p "System password for sudo commands: " echo 1 >/dev/null 2>&1;
 
@@ -33,4 +35,4 @@ fi
 sudo -H pip install --ignore-installed six -r requirements.txt
 
 # Do initial decryption
-python secrets2git/secrets2git.py decrypt
+python secrets2git.py decrypt
