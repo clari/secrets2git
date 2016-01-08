@@ -1,5 +1,5 @@
 Managing secrets correctly is a giant pain to get right.
-secrets2git attempts to fix that by making secure management of secrets easy.
+secrets2git attempts to fix this by making secure management of secrets easy.
 
 How?
 secrets2git simply encrypts secrets into source where they can be encrypted
