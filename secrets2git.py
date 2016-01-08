@@ -18,6 +18,10 @@ EXTENSION = '.encrypted'
 HOME = expanduser("~")
 
 
+def say(message):
+    print('secrets2git: ' + message)
+
+
 def get_client():
     if os.path.isfile(HOME + '/.aws/credentials'):
         return boto3.client('kms', region_name=conf.REGION_NAME)
@@ -32,48 +36,49 @@ def get_client():
                           aws_secret_access_key=conf.AWS_SECRET_ACCESS_KEY)
 
 
-def say(message):
-    print('secrets2git: ' + message)
-
-client = get_client()
-
-if client == False:
-    say('AWS credentials not found in ~/.aws/credentials or in '
-        'AWS_ACCESS_KEY_ID and AWS_SECRET_ACCESS_KEY environment variables')
-    exit(1)
-
-if 'KEY' not in dir(conf):
-    say('secrets2git key not found in ' + CONF_FILE_NAME)
-    say('Do you want to create a new one?')
-    answer = raw_input()
-    if 'y' in answer:
-        key = Fernet.generate_key()
-        response = client.encrypt(
-            KeyId=conf.KMS_KEY_ID,
-            Plaintext=key)
-        encoded = response['CiphertextBlob'].encode('base64')
-        say('')
-        say('Add the following to ' + CONF_FILE_NAME + ' -----------')
-        say('')
-        say('KEY = """' + encoded + '"""')
-        say('')
-    else:
-        exit(1)
-elif conf.KMS_KEY_ID is None:
-    say('KMS key id not set in ' + CONF_FILE_NAME)
-    exit(1)
-
-fernet_key = client.decrypt(
-    CiphertextBlob=conf.KEY.decode('base64'))['Plaintext']
-
-fernet = Fernet(fernet_key.encode('ascii'))
-
-if len(sys.argv) < 2:
-    say('pass decrypt or encrypt as first argument')
-    exit(1)
+def encrypt_files(fernet):
+    encrypted_file_names = []
+    for file_name in conf.FILES_TO_ENCRYPT:
+        file_path = PARENT_DIR + file_name
+        file_path_encrypted = file_path + EXTENSION
+        if not os.path.isfile(file_name):
+            say(file_name + ' does not exist, skipping')
+            continue
+        encrypt(encrypted_file_names, fernet, file_name, file_path,
+                file_path_encrypted)
+    if not encrypted_file_names:
+        say('No secrets changed')
+    if os.environ.get('SECRETS2GIT_COMMIT', None):
+        commit_encrypted_files(encrypted_file_names)
+    elif encrypted_file_names:
+        say('Please commit:')
+        for file_name in encrypted_file_names:
+            say('\t' + file_name)
 
 
-def decrypt(filename):
+def encrypt(encrypted_file_names, fernet, file_name, file_path,
+            file_path_encrypted):
+    with open(file_path, 'rb') as in_file:
+        contents = in_file.read()
+        is_first_encryption = not os.path.isfile(file_path_encrypted)
+        if is_first_encryption or contents != decrypt(file_name, fernet):
+            header = 'Encrypted with secrets2git'.ljust(76, '-') + '\n'
+            encrypted = header + fernet.encrypt(contents).encode('base64')
+            with open(file_path_encrypted, 'w') as out_file:
+                out_file.write(encrypted)
+            encrypted_file_names.append(file_name + EXTENSION)
+            say('Encrypted ' + file_name)
+
+
+def decrypt_files(fernet):
+    for file_name in conf.FILES_TO_ENCRYPT:
+        decrypted = decrypt(file_name, fernet)
+        with open(PARENT_DIR + file_name, 'w') as out_file:
+            out_file.write(decrypted)
+        say('Decrypted ' + file_name)
+
+
+def decrypt(filename, fernet):
     with open(PARENT_DIR + filename + EXTENSION, 'r') as in_file:
         contents = ''.join(in_file.readlines()[1:])  # Skip header
         decrypted = fernet.decrypt(contents.decode('base64'))
@@ -92,35 +97,52 @@ def commit_encrypted_files(file_names):
         say(cmd)
         subprocess.call(cmd)
 
-encrypted_file_names = []
-if sys.argv[1] == 'encrypt':
-    for file_name in conf.FILES_TO_ENCRYPT:
-        if not os.path.isfile(file_name):
-            say(file_name + ' does not exist, skipping')
-            continue
-        with open(PARENT_DIR + file_name, 'rb') as in_file:
-            contents = in_file.read()
-            if contents != decrypt(file_name):
-                header = 'Encrypted with secrets2git'.ljust(76, '-') + '\n'
-                encrypted = header + fernet.encrypt(contents).encode('base64')
-                with open(PARENT_DIR + file_name + EXTENSION, 'w') as out_file:
-                    out_file.write(encrypted)
-                encrypted_file_names.append(file_name + EXTENSION)
-                say('Encrypted ' + file_name)
-    if not encrypted_file_names:
-        say('No secrets changed')
-    if os.environ.get('SECRETS2GIT_COMMIT', None):
-        commit_encrypted_files(encrypted_file_names)
-    elif encrypted_file_names:
-        say('Please commit:')
-        for file_name in encrypted_file_names:
-            say('\t' + file_name)
-elif sys.argv[1] == 'decrypt':
-    for file_name in conf.FILES_TO_ENCRYPT:
-        decrypted = decrypt(file_name)
-        with open(PARENT_DIR + file_name, 'w') as out_file:
-            out_file.write(decrypted)
-        say('Decrypted ' + file_name)
-else:
-    say('invalid first argument, must be decrypt or encrypt')
 
+def ensure_key(client):
+    if 'KEY' not in dir(conf):
+        say('secrets2git key not found in ' + CONF_FILE_NAME)
+        say('Do you want to create a new one?')
+        answer = raw_input()
+        if 'y' in answer:
+            generate_key(client)
+        exit(1)
+    elif conf.KMS_KEY_ID is None:
+        say('KMS key id not set in ' + CONF_FILE_NAME)
+        exit(1)
+
+
+def generate_key(client):
+    key = Fernet.generate_key()
+    response = client.encrypt(
+        KeyId=conf.KMS_KEY_ID,
+        Plaintext=key)
+    encoded = response['CiphertextBlob'].encode('base64')
+    say('')
+    say('Add the following to ' + CONF_FILE_NAME + ' -----------')
+    say('')
+    say('KEY = """' + encoded + '"""')
+    say('')
+
+
+def main():
+    client = get_client()
+    if not client:
+        say('AWS credentials not found in ~/.aws/credentials or in '
+            'AWS_ACCESS_KEY_ID and AWS_SECRET_ACCESS_KEY environment variables')
+        exit(1)
+    ensure_key(client)
+    fernet_key = client.decrypt(
+        CiphertextBlob=conf.KEY.decode('base64'))['Plaintext']
+    fernet = Fernet(fernet_key.encode('ascii'))
+    if len(sys.argv) < 2:
+        say('pass decrypt or encrypt as first argument')
+        exit(1)
+    if sys.argv[1] == 'encrypt':
+        encrypt_files(fernet)
+    elif sys.argv[1] == 'decrypt':
+        decrypt_files(fernet)
+    else:
+        say('invalid first argument, must be decrypt or encrypt')
+
+if __name__ == '__main__':
+    main()
