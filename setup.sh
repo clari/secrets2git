@@ -24,7 +24,7 @@ command -v pip >/dev/null 2>&1 || {
 }
 
 # Install cryptography package
-if ! hash openssl1 2>/dev/null && [[ "$OSTYPE" == "darwin"* ]]; then
+if ! hash openssl 2>/dev/null && [[ "$OSTYPE" == "darwin"* ]]; then
   # Make sure openssl is installed (for El Capitan)
     brew install openssl 2> /dev/null || true;
     sudo -H env LDFLAGS="-L$(brew --prefix openssl)/lib" CFLAGS="-I$(brew --prefix openssl)/include" pip install -I cryptography
