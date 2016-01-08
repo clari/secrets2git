@@ -2,12 +2,7 @@ Managing secrets correctly is a giant pain to get right.
 secrets2git attempts to fix this by making secure management of secrets easy.
 
 How?
-secrets2git simply encrypts secrets into source where they can be encrypted
-and decrypted with git hooks.
-
-KMS for encryption
-secrets2git uses KMS to meet the most stringent compliance requirements and
-ensure the master key is never stored or seen by anyone.
+secrets2git simply encrypts secrets into source.
 
 Setup
 -----
