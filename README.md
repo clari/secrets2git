@@ -52,6 +52,6 @@ Setup
 
 Deployment
 ----------
-1. Call `git submodule update --init`
-2. Run `python secrets2git.py decrypt`
+1. `git submodule update --init`
+2. `python secrets2git.py decrypt`
 
