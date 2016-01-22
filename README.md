@@ -17,16 +17,15 @@ Setup
 
 3. Copy Secrets2GitConf.sample.py to Secrets2GitConf.py in your root directory and set the values appropriately
 4. Run `python secrets2git.py` to generate an encrypted key, then paste that key in your Secrets2GitConf.py
-5. Optionally create a git hooks to automate encryption:
+5. Optionally create a git hooks to automate decryption:
 
    ```bash
    # Make .git/hooks directory if it doesn't exist
    if [ ! -d ".git/hooks" ]; then
      mkdir .git/hooks
    fi
-   echo python secrets2git.py decrypt >> .git/hooks/post-merge
-   echo python secrets2git.py decrypt >> .git/hooks/post-rewrite
-   echo python secrets2git.py encrypt >> .git/hooks/pre-push
+   echo python secrets2git/secrets2git.py decrypt >> .git/hooks/post-merge
+   echo python secrets2git/secrets2git.py decrypt >> .git/hooks/post-rewrite
    ```
    
 6. Setup AWS keys if you haven't already
@@ -49,6 +48,11 @@ Setup
       aws_access_key_id=your_downloaded_key_id
       aws_secret_access_key=your_downloaded_key
       ```
+
+Encrypting new secrets
+---------------------------------
+`python secrets2git/secrets2git.py encrypt`
+
 
 Deployment
 ----------
