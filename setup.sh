@@ -4,6 +4,7 @@ set -e
 # Verified on Mac OSX Yosemite and El Capitan
 
 DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
+CRYPTOGRAPHY_VERSION='1.2.1'
 
 # Go to parent project
 cd ${DIR}
@@ -30,12 +31,12 @@ if ! hash openssl 2>/dev/null && [[ "$OSTYPE" == "darwin"* ]]; then
     echo    # (optional) move to a new line
     if [[ $REPLY =~ ^[Yy]$ ]]; then
         brew install openssl 2> /dev/null || true;
-        sudo -H env LDFLAGS="-L$(brew --prefix openssl)/lib" CFLAGS="-I$(brew --prefix openssl)/include" pip install -I cryptography        
+        sudo -H env LDFLAGS="-L$(brew --prefix openssl)/lib" CFLAGS="-I$(brew --prefix openssl)/include" pip install -I cryptography==${CRYPTOGRAPHY_VERSION}
     else
         exit 1
     fi
 else
-  sudo -H pip install -I cryptography
+  sudo -H pip install -I cryptography==${CRYPTOGRAPHY_VERSION}
 fi
 
 sudo -H pip install --ignore-installed six -r requirements.txt
