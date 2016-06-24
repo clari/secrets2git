@@ -65,6 +65,6 @@ You don't need git to encrypt or decrypt. Just run the following in your `CMD` d
 
 `python secrets2git.py decrypt`
 
-Seeing this you might ask if the project should be called `secrets2source` or something. I agree!
+Seeing this you might ask if the project should be called `secrets2source` or something. I agree https://github.com/clari/secrets2git/issues/1
 
 
