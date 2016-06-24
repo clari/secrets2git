@@ -60,7 +60,7 @@ Deployment
 2. `python secrets2git.py decrypt`
 
 
-** Deployment on with Docker and/or Kubernetes**
+**Deployment on with Docker and/or Kubernetes**
 You don't need git to encrypt or decrypt. Just run the following in your `CMD` docker entrypoint with your AWS creds available:
 
 `python secrets2git.py decrypt`
