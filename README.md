@@ -61,10 +61,12 @@ Deployment
 
 
 **Deployment on with Docker and/or Kubernetes**
-You don't need git to encrypt or decrypt. Just run the following in your `CMD` docker entrypoint with your AWS creds available:
+You don't actually need git to encrypt or decrypt. Just run the following in your `CMD` docker entrypoint with your AWS creds available:
 
 `python secrets2git.py decrypt`
 
-Seeing this you might ask if the project should be called `secrets2source` or something. I agree https://github.com/clari/secrets2git/issues/1
+Seeing this you might ask if the project should be called `secrets2source` or something. I agree!
+
+https://github.com/clari/secrets2git/issues/1
 
 
