@@ -59,3 +59,12 @@ Deployment
 1. `git submodule update --init`
 2. `python secrets2git.py decrypt`
 
+
+** Deployment on with Docker and/or Kubernetes**
+You don't need git to encrypt or decrypt. Just run the following in your `CMD` docker entrypoint with your AWS creds available:
+
+`python secrets2git.py decrypt`
+
+Seeing this you might say ask if the project should be called `secrets2source` or something similar. mmm Yeah, you're right!
+
+
