@@ -13,7 +13,7 @@ Setup
 
 2. Run
  
-   `cd secrets2git && ./setup.sh`
+   `./secrets2git/setup.sh`
 
 3. Copy Secrets2GitConf.sample.py to Secrets2GitConf.py in your root directory and set the values appropriately
 4. Run `python secrets2git.py` to generate an encrypted key, then paste that key in your Secrets2GitConf.py
