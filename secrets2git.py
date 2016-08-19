@@ -13,7 +13,15 @@ from os.path import expanduser
 
 CONF_FILE_NAME = 'Secrets2GitConf.py'
 PARENT_DIR = os.path.dirname(os.path.dirname(os.path.realpath(__file__))) + '/'
-conf = imp.load_source('conf', PARENT_DIR + CONF_FILE_NAME)
+CONF_FILE_PATH = PARENT_DIR + CONF_FILE_NAME
+if os.path.isfile(os.path.join(CONF_FILE_PATH)):
+    conf = imp.load_source('conf', CONF_FILE_PATH)
+else:
+    print('Please configure {CONF_FILE_NAME} in the root directory of your project with:\n'
+          '`cp secrets2git/Secrets2GitConf.sample.py Secrets2GitConf.py`\n'
+          'and then setting the variables appropriately in Secrets2GitConf.py'
+          .format(CONF_FILE_NAME=CONF_FILE_NAME))
+    exit(1)
 EXTENSION = '.encrypted'
 HOME = expanduser("~")
 
@@ -101,8 +109,7 @@ def commit_encrypted_files(file_names):
 def ensure_key(client):
     if 'KEY' not in dir(conf):
         say('secrets2git key not found in ' + CONF_FILE_NAME)
-        say('Do you want to create a new one?')
-        answer = raw_input()
+        answer = raw_input('Do you want to create a new one (y, n)? ')
         if 'y' in answer:
             generate_key(client)
         exit(1)
@@ -117,11 +124,11 @@ def generate_key(client):
         KeyId=conf.KMS_KEY_ID,
         Plaintext=key)
     encoded = response['CiphertextBlob'].encode('base64')
-    say('')
-    say('Add the following to ' + CONF_FILE_NAME + ' -----------')
-    say('')
-    say('KEY = """' + encoded + '"""')
-    say('')
+    print('')
+    print('Add the following to ' + CONF_FILE_NAME + ' -----------')
+    print('')
+    print('KEY = """' + encoded + '"""')
+    print('')
 
 
 def main():
