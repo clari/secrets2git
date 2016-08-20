@@ -41,7 +41,7 @@ fi
 
 sudo -H pip install --ignore-installed six -r requirements.txt
 
-if [ -f ${DIR}../Secrets2GitConf.py ]; then
+if [ -f ${DIR}/../Secrets2GitConf.py ]; then
   # If existing project, do initial decryption
   python secrets2git.py decrypt
 fi
