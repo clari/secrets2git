@@ -36,7 +36,7 @@ if ! hash openssl 2>/dev/null && [[ "$OSTYPE" == "darwin"* ]]; then
         exit 1
     fi
 else
-  sudo -H pip install -I cryptography==${CRYPTOGRAPHY_VERSION}
+  sudo -H pip install -I cryptography==${CRYPTOGRAPHY_VERSION} pycparser==2.13
 fi
 
 sudo -H pip install --ignore-installed six -r requirements.txt
