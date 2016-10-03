@@ -1,1 +1,4 @@
 boto3
+
+# http://stackoverflow.com/questions/39822435/trouble-with-installing-openstack-through-devstack-script
+pycparser==2.13
