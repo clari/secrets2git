@@ -77,6 +77,12 @@ def decrypt_files(fernet):
             out_file.write(decrypted)
         say('Decrypted ' + file_name)
 
+def decrypt_file(file_name, fernet):
+    decrypted = decrypt(file_name, fernet)
+    with open(PARENT_DIR + file_name, 'w') as out_file:
+        out_file.write(decrypted)
+        say('Decrypted ' + file_name)
+
 
 def decrypt(filename, fernet):
     with open(PARENT_DIR + filename + EXTENSION, 'r') as in_file:
@@ -137,12 +143,19 @@ def main():
     if len(sys.argv) < 2:
         say('pass decrypt or encrypt as first argument')
         exit(1)
-    if sys.argv[1] == 'encrypt':
-        encrypt_files(fernet)
-    elif sys.argv[1] == 'decrypt':
-        decrypt_files(fernet)
+
+    if len(sys.argv) >= 3:
+        if sys.argv[1] == 'decrypt':
+            decrypt_file(sys.argv[2], fernet)
+        else:
+            say('invalid option for first argument, only decrypt supported when filename is passed')
     else:
-        say('invalid first argument, must be decrypt or encrypt')
+        if sys.argv[1] == 'encrypt':
+            encrypt_files(fernet)
+        elif sys.argv[1] == 'decrypt':
+            decrypt_files(fernet)
+        else:
+            say('invalid first argument, must be decrypt or encrypt')
 
 if __name__ == '__main__':
     main()
