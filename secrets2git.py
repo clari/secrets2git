@@ -3,6 +3,7 @@
 print('secrets2git: Starting')
 
 import boto3
+import botocore.session
 import os
 from cryptography.fernet import Fernet
 import imp
@@ -17,12 +18,23 @@ conf = imp.load_source('conf', PARENT_DIR + CONF_FILE_NAME)
 EXTENSION = '.encrypted'
 HOME = expanduser("~")
 
-
 def say(message):
     print('secrets2git: ' + message)
 
-
 def get_client():
+
+    session = botocore.session.get_session()
+    AWS_ACCESS_KEY_ID = session.get_credentials().access_key
+    AWS_SECRET_ACCESS_KEY = session.get_credentials().secret_key
+
+    if not (AWS_ACCESS_KEY_ID is None):
+        if not (AWS_SECRET_ACCESS_KEY is None):
+            return boto3.client('kms', region_name=conf.REGION_NAME,
+                              aws_access_key_id=AWS_ACCESS_KEY_ID,
+                              aws_secret_access_key=AWS_SECRET_ACCESS_KEY)
+
+    say('value not found in session')
+
     if os.path.isfile(HOME + '/.aws/credentials'):
         return boto3.client('kms', region_name=conf.REGION_NAME)
     else:
