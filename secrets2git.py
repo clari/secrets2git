@@ -3,6 +3,7 @@
 print('secrets2git: Starting')
 
 import boto3
+import botocore.session
 import os
 from cryptography.fernet import Fernet
 import imp
@@ -25,12 +26,23 @@ else:
 EXTENSION = '.encrypted'
 HOME = expanduser("~")
 
-
 def say(message):
     print('secrets2git: ' + message)
 
-
 def get_client():
+
+    session = botocore.session.get_session()
+    AWS_ACCESS_KEY_ID = session.get_credentials().access_key
+    AWS_SECRET_ACCESS_KEY = session.get_credentials().secret_key
+
+    if not (AWS_ACCESS_KEY_ID is None):
+        if not (AWS_SECRET_ACCESS_KEY is None):
+            return boto3.client('kms', region_name=conf.REGION_NAME,
+                              aws_access_key_id=AWS_ACCESS_KEY_ID,
+                              aws_secret_access_key=AWS_SECRET_ACCESS_KEY)
+
+    say('value not found in session')
+
     if os.path.isfile(HOME + '/.aws/credentials'):
         return boto3.client('kms', region_name=conf.REGION_NAME)
     else:
@@ -83,6 +95,12 @@ def decrypt_files(fernet):
         decrypted = decrypt(file_name, fernet)
         with open(PARENT_DIR + file_name, 'w') as out_file:
             out_file.write(decrypted)
+        say('Decrypted ' + file_name)
+
+def decrypt_file(file_name, fernet):
+    decrypted = decrypt(file_name, fernet)
+    with open(PARENT_DIR + file_name, 'w') as out_file:
+        out_file.write(decrypted)
         say('Decrypted ' + file_name)
 
 
@@ -144,12 +162,19 @@ def main():
     if len(sys.argv) < 2:
         say('pass decrypt or encrypt as first argument')
         exit(1)
-    if sys.argv[1] == 'encrypt':
-        encrypt_files(fernet)
-    elif sys.argv[1] == 'decrypt':
-        decrypt_files(fernet)
+
+    if len(sys.argv) >= 3:
+        if sys.argv[1] == 'decrypt':
+            decrypt_file(sys.argv[2], fernet)
+        else:
+            say('invalid option for first argument, only decrypt supported when filename is passed')
     else:
-        say('invalid first argument, must be decrypt or encrypt')
+        if sys.argv[1] == 'encrypt':
+            encrypt_files(fernet)
+        elif sys.argv[1] == 'decrypt':
+            decrypt_files(fernet)
+        else:
+            say('invalid first argument, must be decrypt or encrypt')
 
 if __name__ == '__main__':
     main()
