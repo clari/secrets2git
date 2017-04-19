@@ -31,17 +31,7 @@ def say(message):
 
 
 def get_client():
-    if os.path.isfile(HOME + '/.aws/credentials'):
-        return boto3.client('kms', region_name=conf.REGION_NAME)
-    else:
-        if not conf.AWS_ACCESS_KEY_ID:
-            return False
-        elif not conf.AWS_SECRET_ACCESS_KEY:
-            return False
-        else:
-            return boto3.client('kms', region_name=conf.REGION_NAME,
-                          aws_access_key_id=conf.AWS_ACCESS_KEY_ID,
-                          aws_secret_access_key=conf.AWS_SECRET_ACCESS_KEY)
+    return boto3.client('kms', region_name=conf.REGION_NAME)
 
 
 def encrypt_files(fernet):
