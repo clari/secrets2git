@@ -7,17 +7,7 @@ Plus it uses [KMS](https://aws.amazon.com/kms/), so there are no shared password
 
 Setup
 -----
-1. Add this submodule to your repo:
-   
-   `git submodule add git@github.com:clariussystems/secrets2git.git`
-
-2. Run
- 
-   `./secrets2git/setup.sh`
-
-3. `cp secrets2git/Secrets2GitConf.sample.py Secrets2GitConf.py` and set the values in `Secrets2GitConf.py` appropriately
-4. Run `python secrets2git/secrets2git.py encrypt` to generate an encrypted key, then paste that key in your Secrets2GitConf.py
-5. Setup AWS keys if you haven't already
+1. Setup AWS keys if you haven't already
 
    a. Go to [Users](https://console.aws.amazon.com/iam/home#users) in AWS
    
@@ -37,9 +27,18 @@ Setup
       aws_access_key_id=your_downloaded_key_id
       aws_secret_access_key=your_downloaded_key
       ```
-6. Run `python secrets2git/secrets2git.py encrypt` to generate your encrypted files. Now you can add and commit
-    the `*.encrypted` files (making sure to .gitignore the encrypted ones of course)!
-7. Optionally create git hooks to automate decryption:
+2. Add this submodule to your repo:
+   
+   `git submodule add git@github.com:clariussystems/secrets2git.git`
+
+3. Run
+ 
+   `./secrets2git/setup.sh`
+
+4. `cp secrets2git/Secrets2GitConf.sample.py Secrets2GitConf.py` and set the values in `Secrets2GitConf.py` appropriately
+5. Run `python secrets2git/secrets2git.py encrypt` to generate your encrypted files. Now you can add and commit
+    the `*.encrypted` files (making sure to .gitignore the decrypted ones of course)!
+6. Optionally create git hooks to automate decryption:
 
    ```bash
    # Make .git/hooks directory if it doesn't exist
